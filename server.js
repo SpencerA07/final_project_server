@@ -75,6 +75,29 @@ var postsRouter = require("./routes/posts.js");
 server.use("/posts", postsRouter);
 var usersRouter = require("./routes/users.js");
 server.use("/users", usersRouter);
+// Endpoints
+server.get("/test", function(req, res) {
+  var response = {
+    test: data.test
+  };
+  res.json(response);
+});
+
+// GET endpoint to retrieve user data
+server.get("/money", function(req, res) {
+  var response = {
+    userdata: data.users
+  };
+  response.userdata.forEach(function(user) {
+    user.totalMonies = user.savingsAcct + user.checkingAcct;
+  });
+  res.json(response);
+});
+
+// POST endpoind to add new user data
+server.post("/money", function(req, res) {
+  
+});
 
 mongoose.connect("mongodb+srv://LuTen16:16TenLu@firstcluster-x9et2.mongodb.net/registerauth?retryWrites=true&w=majority", {
     // /registerauth will specifiy which database it will connect to within the cluster
