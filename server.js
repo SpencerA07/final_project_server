@@ -11,6 +11,7 @@ const LocalStrategy = require("passport-local").Strategy; // npm install passpor
 // var postsModel = require("./schema.js"); // no longer used here, only in its routes file
 var userModel = require("./models/user.js");
 
+
 // Setup Server
 var server = express();
 var port = process.env.PORT || 3000;
@@ -81,26 +82,26 @@ server.use("/posts", postsRouter);
 var usersRouter = require("./routes/user.js");
 server.use("/users", usersRouter);
 // Endpoints
-server.get("/test", function(req, res) {
-  var response = {
-    test: data.test
-  };
-  res.json(response);
-});
+// server.get("/test", function(req, res) {
+//   var response = {
+//     test: data.test
+//   };
+//   res.json(response);
+// });
 
 // GET endpoint to retrieve user data
-server.get("/money", function(req, res) {
-  var response = {
-    userdata: data.users
-  };
-  response.userdata.forEach(function(user) {
-    user.totalMonies = user.savingsAcct + user.checkingAcct;
-  });
-  res.json(response);
-});
+// server.get("/money", function(req, res) {
+//   var response = {
+//     userdata: data.users
+//   };
+//   response.userdata.forEach(function(user) {
+//     user.totalMonies = user.savingsAcct + user.checkingAcct;
+//   });
+//   res.json(response);
+// });
 
 // POST endpoind to add new user data
-server.post("/money", function(req, res) {});
+// server.post("/money", function(req, res) {});
 
 mongoose
   .connect(
