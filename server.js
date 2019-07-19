@@ -10,7 +10,7 @@ const LocalStrategy = require("passport-local").Strategy; // npm install passpor
 // Data
 // var postsModel = require("./schema.js"); // no longer used here, only in its routes file
 var userModel = require("./models/user.js");
-
+var data = require("./data.js");
 // Setup Server
 var server = express();
 var port = process.env.PORT || 3000;
