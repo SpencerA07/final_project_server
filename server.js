@@ -1,4 +1,3 @@
-// imports
 const express = require("express");
 const expressSession = require("express-session"); // npm install express-session
 // const cors = require("cors");
@@ -7,15 +6,10 @@ const bcrypt = require("bcryptjs"); // npm install bcryptjs
 const passport = require("passport"); // npm install passport
 const LocalStrategy = require("passport-local").Strategy; // npm install passport-local
 
-// Data
-// var postsModel = require("./schema.js"); // no longer used here, only in its routes file
-var userModel = require("./models/user.js");
-var data = require("./data.js");
-// Setup Server
 var server = express();
-var port = process.env.PORT || 3000;
-
+var PORT = process.env.PORT || 3000;
 // Middleware
+
 server.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", req.get("origin"));
   res.header("Access-Control-Allow-Credentials", "true");
@@ -74,44 +68,102 @@ passport.use(
     );
   })
 );
+var ensureAuthentication = function(req, res, next) {
+  if (req.isAuthenticated()) {
+    next();
+  } else {
+    res.status(403); // Forbidden
+    res.json({
+      msg: "Please login first"
+    });
+  }
+};
 
-// Routers
-var postsRouter = require("./routes/posts.js");
-server.use("/posts", postsRouter);
-var usersRouter = require("./routes/user.js");
-server.use("/users", usersRouter);
+// Models
+var userModel = require("./models/user.js");
+
 // Endpoints
-server.get("/test", function(req, res) {
-  var response = {
-    test: data.test
-  };
-  res.json(response);
-});
-
-// GET endpoint to retrieve user data
-server.get("/money", function(req, res) {
-  var response = {
-    userdata: data.users
-  };
-  response.userdata.forEach(function(user) {
-    user.totalMonies = user.savingsAcct + user.checkingAcct;
+server.get("/private", ensureAuthentication, function(req, res) {
+  res.json({
+    msg: `Hello ${req.user.username}`
   });
-  res.json(response);
 });
 
-// POST endpoind to add new user data
-server.post("/money", function(req, res) {});
+// Register
+server.post("/users/register", function(req, res) {
+  userModel
+    .findOne({
+      username: req.body.username
+    })
+    .then(function(user) {
+      if (user) {
+        res.status(422); // unprocessable
+        res.json({
+          msg: "That username is already in use."
+        });
+      } else {
+        // Create the user, but first encrypt the password
+        bcrypt.genSalt(10, function(error, salt) {
+          bcrypt.hash(req.body.password, salt, function(
+            error,
+            hashed_password
+          ) {
+            userModel
+              .create({
+                username: req.body.username,
+                password: hashed_password
+              })
+              .then(function(new_user) {
+                res.status(201);
+                res.json({
+                  user: new_user
+                });
+              })
+              .catch(function(error) {
+                res.status(400).json({ msg: error.message });
+              });
+          });
+        });
+      }
+    })
+    .catch(function(error) {
+      res.status(400).json({ msg: error.message });
+    });
+});
 
+// Login
+server.post(
+  "/users/login",
+  passport.authenticate("local", { failureRedirect: "/users/login/error" }),
+  function(req, res, next) {
+    res.redirect("/users/login/success");
+  }
+);
+
+// Login error and success
+server.get("/users/login/error", function(req, res) {
+  res.status(403); // forbidden
+  res.json({
+    msg: "Invalid username or password"
+  });
+});
+
+server.get("/users/login/success", function(req, res) {
+  res.json({
+    msg: `Welcome ${req.user.username}`
+  });
+});
+
+// Connect to database and start the server
 mongoose
   .connect(
-    "mongodb+srv://LuTen16:16TenLu@firstcluster-x9et2.mongodb.net/registerauth?retryWrites=true&w=majority",
+    "mongodb+srv://theduck:duckthe@cluster0-esbag.mongodb.net/test?retryWrites=true&w=majority",
     {
-      // /registerauth will specifiy which database it will connect to within the cluster
       useNewUrlParser: true
     }
   )
   .then(function() {
-    server.listen(port, function() {
-      console.log("Listening on " + port);
+    server.listen(PORT, function() {
+      console.log(`Listening on port ${PORT}`);
     });
   });
